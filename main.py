@@ -4,49 +4,56 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QRadioBu
 from PyQt5.QtCore import Qt
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 
-class Polynomial:
+class MathFunction:
 
-    def __init__(self, *coefficients):
-
-        self.coefficients = list(coefficients)  # tuple is turned into a list
-
-    def __repr__(self):
-
-        return "Polynomial" + str(tuple(self.coefficients))
-
-    def __str__(self):
-
-        def x_expr(degree):
-            if degree == 0:
-                res = ""
-            elif degree == 1:
-                res = "x"
-            else:
-                res = "x^" + str(degree)
-            return res
-
-        degree = len(self.coefficients) - 1
-        res = ""
-
-        for i in range(0, degree + 1):
-            coeff = self.coefficients[i]
-            # nothing has to be done if coeff is 0:
-            if abs(coeff) == 1 and i < degree:
-                # 1 in front of x shouldn't occur, e.g. x instead of 1x
-                # but we need the plus or minus sign:
-                res += f"{'+' if coeff > 0 else '-'}{x_expr(degree - i)}"
-            elif coeff != 0:
-                res += f"{coeff:+g}{x_expr(degree - i)}"
-
-        return res.lstrip('+')  # removing leading '+'
+    def __init__(self, string):
+        self.fun = string
 
     def __call__(self, x):
-        res = 0
-        for coeff in self.coefficients:
-            res = res * x + coeff
-        return res
+        y = self.fun
+        result = 0
+        i = 0
+        while i < len(y):
+            if y[i] == "sin":
+                result += y[i + 1] * math.sin(y[i + 2] * x)
+            elif y[i] == "cos":
+                result += y[i + 1] * math.cos(y[i + 2] * x)
+            elif y[i] == "tg":
+                result += y[i + 1] * math.tg(y[i + 2] * x)
+            elif y[i] == "ctg":
+                result += y[i + 1] * math.ctg(y[i + 2] * x)
+            elif y[i] == "**":
+                result += pow(y[i + 1] * x, y[i + 2])
+            elif y[i] == "^":
+                result += pow(y[i + 1], y[i + 2] * x)
+            elif y[i] == "C":
+                result += y[i + 1]
+                i -= 1
+            i += 3
+
+        return result
+
+    def __str__(self):
+        y = self.fun
+        result = ""
+        i = 0
+        while i < len(y):
+            if (y[i + 1]) > 0 and i > 0:
+                result += "+"
+            if y[i] in ("sin", "cos", "tg", "ctg"):
+                result += str(y[i + 1]) + y[i] + "(" + str(y[2]) + "x)"
+            elif y[i] == "**":
+                result += str(y[i + 1]) + "x^" + str(y[i + 2])
+            elif y[i] == "^":
+                result += str(y[i + 1]) + "^" + str(y[i + 2]) + "x"
+            elif y[i] == "C":
+                result += str(y[i + 1])
+                i -= 1
+            i += 3
+        return result
 
 
 class Main(QWidget):
@@ -54,13 +61,10 @@ class Main(QWidget):
     def __init__(self, parent=None):
         super(Main, self).__init__(parent)
 
-        self.funkcje = [Polynomial(1, 0, -4, 3, 0),
-                        Polynomial(2, 0),
-                        Polynomial(4, 1, -1),
-                        Polynomial(3, 0, -5, 2, 7),
-                        Polynomial(-42),
-                        Polynomial(1, 0, -1, -2),
-                        Polynomial(1, -1, -1)]
+        self.funkcje = [MathFunction(("**", -3, 3, "sin", -2, -3, "^", 2, -1, "C", -3, "cos", 1, 1)),
+                        MathFunction(("sin", 2, -1)),
+                        MathFunction(("pow", 4, 2, "**", - 1, 4))
+                        ]# najpierw rodzaj operacji, później argument przed operacją, później ile razy X, np. sin,2,-1 = 2*sin(-1*x)
 
         self.cb = QComboBox()
         for i in self.funkcje:
@@ -166,13 +170,13 @@ class Main(QWidget):
             temp = 0
 
             while not self.unimodalnosc():
-                print("nope")
+                print("Funkcja nie jest unimodalna, szukany jest nowy przedział")
                 self.poczatek -= 5
                 self.poczatek -= 5
                 temp += 1
 
                 if temp == 50:
-                    print("NO{E")
+                    print("Program nie mógł znaleźć przedziału, w którym funkcja jest unimodalna")
                     exit(-1)
 
             if self.stop == "Ilość iteracji":
@@ -253,6 +257,9 @@ class Main(QWidget):
         plt.figure(200)
         plt.plot(X, Y)
         plt.plot(midpoint, self.funkcja(midpoint), 'ro')
+
+        plt.plot([self.poczatek, self.koniec], [0, 0], label="Unimodalnosc")
+
         plt.xlim([self.poczatek, self.koniec])
         plt.show()
 
@@ -270,19 +277,19 @@ class Main(QWidget):
     def zlotyPodzial(self):
         epsilon = self.dokladnosc
 
-        phi = (1 + 5 ** 0.5) / 2 #golden ratio constant
+        phi = (1 + 5 ** 0.5) / 2  # golden ratio constant
         a = self.poczatek
         b = self.koniec
-        c = b - (b-a)/phi
-        d = a + (b-a)/phi
+        c = b - (b - a) / phi
+        d = a + (b - a) / phi
         while abs(b - a) > epsilon:
             if self.funkcja(c) < self.funkcja(d):
-                b=d
+                b = d
             else:
-                a=c
-            c = b - (b-a)/phi
-            d = a + (b-a)/phi
-        x_opt = (b+a)/2
+                a = c
+            c = b - (b - a) / phi
+            d = a + (b - a) / phi
+        x_opt = (b + a) / 2
 
         X = list(range(self.poczatek, self.koniec))
         Y = []
@@ -294,8 +301,8 @@ class Main(QWidget):
         plt.show()
         print(x_opt)
         return x_opt
-    
-    #STARSZA METODA
+
+    # STARSZA METODA
     # def zlotyPodzial(self):
     #     epsilon = self.dokladnosc
     #     phi = (1 + 5 ** 0.5) / 2  # golden ratio constant
@@ -335,10 +342,9 @@ class Main(QWidget):
     #         k += 1  # krok 5
     #     x_opt = (a["value"] + b["value"]) / 2
 
-       
-        # print(x_opt)
-        # print(a["iteration"])
-        # print(b["iteration"])
+    # print(x_opt)
+    # print(a["iteration"])
+    # print(b["iteration"])
 
 
 def main():
