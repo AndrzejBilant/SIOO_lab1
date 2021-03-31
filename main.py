@@ -269,42 +269,73 @@ class Main(QWidget):
 
     def zlotyPodzial(self):
         epsilon = self.dokladnosc
-        phi = (1 + 5 ** 0.5) / 2  # golden ratio constant
-        # krok 1
-        k = 0
-        a = {"iteration": k, "value": self.poczatek}
-        b = {"iteration": k, "value": self.koniec}
-        l = {"iteration": k, "value": (a["value"] + (1 - phi) * (b["value"] - a["value"]))}  # lambda
-        mi = {"iteration": k, "value": (a["value"] + phi * (b["value"] - a["value"]))}
-        fu_mi = self.funkcja(mi["value"])  # wartosc funkcji od mi
-        fu_la = self.funkcja(l["value"])  # wartosc funkcji od lambda
 
-        while (b["value"] - a["value"]) >= 2 * epsilon:  # warunek z kroku 2
-            # todo
-            if self.funkcja(l["value"]) > self.funkcja(mi["value"]):
-                # krok 3
-                a["iteration"] = k + 1
-                a["value"] = l["value"]  # z linijki a(k+1)=lambda(k)
-                b["iteration"] = k + 1  # z linijki b(k+1)=b(k)
-                l["iteration"] = k + 1
-                l["value"] = mi["value"]  # z linijki lambda(k+1)=mi(k)
-                fu_la = self.funkcja(mi["value"])
-                mi["iteration"] = k + 1
-                mi["value"] = a["value"] + phi * (b["value"] - a["value"])
-                fu_mi = self.funkcja(mi["value"])
-            elif self.funkcja(l["value"]) <= self.funkcja(mi["value"]):
-                # krok 4
-                a["iteration"] = k + 1
-                b["iteration"] = k + 1
-                b["value"] = mi["value"]
-                mi["iteration"] = k + 1
-                mi["value"] = l["value"]
-                fu_mi = fu_la
-                l["iteration"] = k + 1
-                l["value"] = a["value"] + (1 - phi) * (b["value"] - a["value"])
-                fu_la = self.funkcja(l["value"])
-            k += 1  # krok 5
-        x_opt = (a["value"] + b["value"]) / 2
+        phi = (1 + 5 ** 0.5) / 2 #golden ratio constant
+        a = self.poczatek
+        b = self.koniec
+        c = b - (b-a)/phi
+        d = a + (b-a)/phi
+        while abs(b - a) > epsilon:
+            if self.funkcja(c) < self.funkcja(d):
+                b=d
+            else:
+                a=c
+            c = b - (b-a)/phi
+            d = a + (b-a)/phi
+        x_opt = (b+a)/2
+
+        X = list(range(self.poczatek, self.koniec))
+        Y = []
+        for i in X:
+            Y.append(self.funkcja(i))
+        plt.plot(X, Y)
+        plt.plot(x_opt, self.funkcja(x_opt), 'ro')
+        plt.xlim([self.poczatek, self.koniec])
+        plt.show()
+        print(x_opt)
+        return x_opt
+    
+    #STARSZA METODA
+    # def zlotyPodzial(self):
+    #     epsilon = self.dokladnosc
+    #     phi = (1 + 5 ** 0.5) / 2  # golden ratio constant
+    #     # krok 1
+    #     k = 0
+    #     a = {"iteration": k, "value": self.poczatek}
+    #     b = {"iteration": k, "value": self.koniec}
+    #     l = {"iteration": k, "value": (a["value"] + (1 - phi) * (b["value"] - a["value"]))}  # lambda
+    #     mi = {"iteration": k, "value": (a["value"] + phi * (b["value"] - a["value"]))}
+    #     fu_mi = self.funkcja(mi["value"])  # wartosc funkcji od mi
+    #     fu_la = self.funkcja(l["value"])  # wartosc funkcji od lambda
+
+    #     while (b["value"] - a["value"]) >= 2 * epsilon:  # warunek z kroku 2
+    #         # todo
+    #         if self.funkcja(l["value"]) > self.funkcja(mi["value"]):
+    #             # krok 3
+    #             a["iteration"] = k + 1
+    #             a["value"] = l["value"]  # z linijki a(k+1)=lambda(k)
+    #             b["iteration"] = k + 1  # z linijki b(k+1)=b(k)
+    #             l["iteration"] = k + 1
+    #             l["value"] = mi["value"]  # z linijki lambda(k+1)=mi(k)
+    #             fu_la = self.funkcja(mi["value"])
+    #             mi["iteration"] = k + 1
+    #             mi["value"] = a["value"] + phi * (b["value"] - a["value"])
+    #             fu_mi = self.funkcja(mi["value"])
+    #         elif self.funkcja(l["value"]) <= self.funkcja(mi["value"]):
+    #             # krok 4
+    #             a["iteration"] = k + 1
+    #             b["iteration"] = k + 1
+    #             b["value"] = mi["value"]
+    #             mi["iteration"] = k + 1
+    #             mi["value"] = l["value"]
+    #             fu_mi = fu_la
+    #             l["iteration"] = k + 1
+    #             l["value"] = a["value"] + (1 - phi) * (b["value"] - a["value"])
+    #             fu_la = self.funkcja(l["value"])
+    #         k += 1  # krok 5
+    #     x_opt = (a["value"] + b["value"]) / 2
+
+       
         # print(x_opt)
         # print(a["iteration"])
         # print(b["iteration"])
