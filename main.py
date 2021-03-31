@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from scipy import optimize
 
 
 class MathFunction:
@@ -61,10 +62,10 @@ class Main(QWidget):
     def __init__(self, parent=None):
         super(Main, self).__init__(parent)
 
-        self.funkcje = [MathFunction(("**", -3, 3, "sin", -2, -3, "^", 2, -1, "C", -3, "cos", 1, 1)),
+        self.funkcje = [MathFunction(("**", -3, 3, "sin", -2, -3, "^", 2, 3, "C", -3, "cos", 1, 1)),
                         MathFunction(("sin", 2, -1)),
                         MathFunction(("pow", 4, 2, "**", - 1, 4))
-                        ]# najpierw rodzaj operacji, później argument przed operacją, później ile razy X, np. sin,2,-1 = 2*sin(-1*x)
+                        ]  # najpierw rodzaj operacji, później argument przed operacją, później ile razy X, np. sin,2,-1 = 2*sin(-1*x)
 
         self.cb = QComboBox()
         for i in self.funkcje:
@@ -171,7 +172,7 @@ class Main(QWidget):
 
             while not self.unimodalnosc():
                 print("Funkcja nie jest unimodalna, szukany jest nowy przedział")
-                self.poczatek -= 5
+                self.poczatek += 5
                 self.poczatek -= 5
                 temp += 1
 
@@ -204,14 +205,16 @@ class Main(QWidget):
 
         krok = self.poczatek
 
+        y1 = self.funkcja(krok)
+        y2 = self.funkcja(krok + 1)
         while krok + 2 <= self.koniec:
-            y1 = self.funkcja(krok)
-            y2 = self.funkcja(krok + 1)
             y3 = self.funkcja(krok + 2)
             if (y1 >= y2) and (y2 <= y3):
                 return True
             else:
                 krok += 1
+                y1 = y2
+                y2 = y3
 
         return False
 
@@ -271,7 +274,8 @@ class Main(QWidget):
             plt.plot(x, y, label="Przedział " + str(temp))
             temp += 1
         plt.show()
-        print(midpoint)
+        print("Zaimplementowana: " + str(midpoint))
+        print("Wbudowana: " + str(optimize.bisect(self.funkcja, self.poczatek, self.koniec)))
         return midpoint
 
     def zlotyPodzial(self):
