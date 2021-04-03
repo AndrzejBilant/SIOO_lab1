@@ -280,19 +280,50 @@ class Main(QWidget):
 
     def zlotyPodzial(self):
         epsilon = self.dokladnosc
-
-        phi = (1 + 5 ** 0.5) / 2  # golden ratio constant
+        phi = (-1 + math.sqrt(5)) / 2
         a = self.poczatek
         b = self.koniec
-        c = b - (b - a) / phi
-        d = a + (b - a) / phi
-        while abs(b - a) > epsilon:
-            if self.funkcja(c) < self.funkcja(d):
-                b = d
-            else:
-                a = c
-            c = b - (b - a) / phi
-            d = a + (b - a) / phi
+        c = (b - a) * (-phi) + b
+        d = (b - a) * phi + a
+        yC = self.funkcja(c)
+        yD = self.funkcja(d)
+        przedzialy = []
+
+        if self.stop == "Ilość iteracji":
+
+            for i in range(self.iteracje):
+                print("Przedział ( " + str(a) + " ; " + str(b) + " )")
+                przedzialy.append(a)
+                przedzialy.append(b)
+                if yC > yD:
+                    a = c
+                    c = d
+                    yC = yD
+                    d = (b - a) * phi + a
+                    yD = self.funkcja(d)
+                else:
+                    b = d
+                    d = c
+                    yD = yC
+                    c = (b - a) * (-phi) + b
+                    yC = self.funkcja(c)
+        else:
+            while abs(b - a) <= 2 * epsilon:
+                print("Przedział ( " + str(a) + " ; " + str(b) + " )")
+                przedzialy.append(a)
+                przedzialy.append(b)
+                if yC > yD:
+                    a = c
+                    c = d
+                    yC = yD
+                    d = (b - a) * phi + a
+                    yD = self.funkcja(d)
+                else:
+                    b = d
+                    d = c
+                    yD = yC
+                    c = (b - a) * (-phi) + b
+                    yC = self.funkcja(c)
         x_opt = (b + a) / 2
 
         X = list(range(self.poczatek, self.koniec))
@@ -303,6 +334,16 @@ class Main(QWidget):
         plt.plot(x_opt, self.funkcja(x_opt), 'ro')
         plt.xlim([self.poczatek, self.koniec])
         plt.show()
+
+        plt.figure(300)
+        temp = 0
+        for i in range(0, len(przedzialy), 2):
+            x = [przedzialy[i], przedzialy[i + 1]]
+            y = [temp, temp]
+            plt.plot(x, y, label="Przedział " + str(temp))
+            temp += 1
+        plt.show()
+
         print(x_opt)
         return x_opt
 
