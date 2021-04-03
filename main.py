@@ -373,7 +373,8 @@ class Main(QWidget):
             temp += 1
         plt.show()
 
-        print(x_opt)
+        print("Zaimplementowana: " + str(x_opt))
+        print("Wbudowana: " + str(optimize.golden(self.funkcja, brack=(self.poczatek, self.koniec))))
         return x_opt
 
     # STARSZA METODA
