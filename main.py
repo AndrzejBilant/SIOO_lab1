@@ -219,47 +219,76 @@ class Main(QWidget):
         return False
 
     def bisekcja(self):
-        print(str(self.funkcja))
         low = self.poczatek
         high = self.koniec
-        yL = self.funkcja(low)
+
         przedzialy = []
+
+        midpoint = (low + high) / 2.0
+        yM = self.funkcja(midpoint)
+
         if self.stop == "Ilość iteracji":
             for i in range(self.iteracje):
 
                 print("Przedział ( " + str(low) + " ; " + str(high) + " )")
                 przedzialy.append(low)
                 przedzialy.append(high)
-                midpoint = (low + high) / 2.0
-                yM = self.funkcja(midpoint)
 
-                if yL * yM < 0:
+                dlugosc = high - low
+                x1 = low + dlugosc / 4.0
+                x2 = high - dlugosc / 4.0
+                y1 = self.funkcja(x1)
+                y2 = self.funkcja(x2)
+
+                if y1 < yM:
                     high = midpoint
-                else:
+                    midpoint = x1
+                    yM = y1
+
+                elif y2 < yM:
                     low = midpoint
-                    yL = yM
+                    midpoint = x2
+                    yM = y2
+                else:
+                    low = x1
+                    high = x2
 
         else:
-            while abs(float(low) - float(high)) < self.dokladnosc:
+            while abs(float(low) - float(high)) <= 2 * self.dokladnosc:
+
                 print("Przedział ( " + str(low) + " ; " + str(high) + " )")
+                przedzialy.append(low)
+                przedzialy.append(high)
 
-                midpoint = (low + high) / 2.0
-                yM = self.funkcja(midpoint)
+                dlugosc = high - low
+                x1 = low + dlugosc / 4.0
+                x2 = high - dlugosc / 4.0
+                y1 = self.funkcja(x1)
+                y2 = self.funkcja(x2)
 
-                if yL * yM < 0:
+                if y1 < yM:
                     high = midpoint
-                else:
+                    midpoint = x1
+                    yM = y1
+
+                elif y2 < yM:
                     low = midpoint
-                    yL = yM
+                    midpoint = x2
+                    yM = y2
+                else:
+                    low = x1
+                    high = x2
 
         X = list(range(self.poczatek, self.koniec))
         Y = []
         for i in X:
-            Y.append(self.funkcja(i))
+            Y.append(self.funkcjaa(i))
+            # Y.append(self.funkcja(i))
 
         plt.figure(200)
         plt.plot(X, Y)
-        plt.plot(midpoint, self.funkcja(midpoint), 'ro')
+        plt.plot(midpoint, self.funkcjaa(midpoint), 'ro')
+        # plt.plot(midpoint, self.funkcja(midpoint), 'ro')
 
         plt.plot([self.poczatek, self.koniec], [0, 0], label="Unimodalnosc")
 
