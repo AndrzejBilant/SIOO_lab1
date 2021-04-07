@@ -17,7 +17,7 @@ class MathFunction:
         y = self.fun
         result = 0
         i = 0
-        while i < len(y):
+        while i < len(y):  # MathFunction(("**", 1, 3, "**", -8, 2, "**", 6, 1, "C", -1)),
             if y[i] == "sin":
                 result += y[i + 1] * math.sin(y[i + 2] * x)
             elif y[i] == "cos":
@@ -27,7 +27,7 @@ class MathFunction:
             elif y[i] == "ctg":
                 result += y[i + 1] * math.ctg(y[i + 2] * x)
             elif y[i] == "**":
-                result += pow(y[i + 1] * x, y[i + 2])
+                result += y[i + 1] * pow(x, y[i + 2])
             elif y[i] == "^":
                 result += pow(y[i + 1], y[i + 2] * x)
             elif y[i] == "C":
@@ -62,9 +62,9 @@ class Main(QWidget):
     def __init__(self, parent=None):
         super(Main, self).__init__(parent)
 
-        self.funkcje = [MathFunction(("**", -3, 3, "sin", -2, -3, "^", 2, 3, "C", -3, "cos", 1, 1)),
+        self.funkcje = [MathFunction(("**", 1, 3, "**", -8, 2, "**", 6, 1, "C", -1)),
                         MathFunction(("sin", 2, -1)),
-                        MathFunction(("pow", 4, 2, "**", - 1, 4))
+                        MathFunction(("**", 1, 4, "**", -4, 1, "C", 10))
                         ]  # najpierw rodzaj operacji, później argument przed operacją, później ile razy X, np. sin,2,-1 = 2*sin(-1*x)
 
         self.cb = QComboBox()
@@ -218,11 +218,14 @@ class Main(QWidget):
 
         return False
 
+    def funkcjaa(self, x):
+        return (100 - x) ** 2
+
     def bisekcja(self):
         low = self.poczatek
         high = self.koniec
-
         przedzialy = []
+        # self.funkcja = self.funkcjaa
 
         midpoint = (low + high) / 2.0
         yM = self.funkcja(midpoint)
@@ -254,7 +257,7 @@ class Main(QWidget):
                     high = x2
 
         else:
-            while abs(float(low) - float(high)) <= 2 * self.dokladnosc:
+            while abs(float(low) - float(high)) >= 2 * self.dokladnosc:
 
                 print("Przedział ( " + str(low) + " ; " + str(high) + " )")
                 przedzialy.append(low)
@@ -279,15 +282,16 @@ class Main(QWidget):
                     low = x1
                     high = x2
 
-        X = list(range(self.poczatek, self.koniec))
+        #X = list(range(self.poczatek, self.koniec))
+        X = list(np.arange(self.poczatek, self.koniec, 0.1))
         Y = []
         for i in X:
-            Y.append(self.funkcjaa(i))
+            Y.append(self.funkcja(i))
             # Y.append(self.funkcja(i))
 
         plt.figure(200)
         plt.plot(X, Y)
-        plt.plot(midpoint, self.funkcjaa(midpoint), 'ro')
+        plt.plot(midpoint, self.funkcja(midpoint), 'ro')
         # plt.plot(midpoint, self.funkcja(midpoint), 'ro')
 
         plt.plot([self.poczatek, self.koniec], [0, 0], label="Unimodalnosc")
@@ -304,7 +308,7 @@ class Main(QWidget):
             temp += 1
         plt.show()
         print("Zaimplementowana: " + str(midpoint))
-        print("Wbudowana: " + str(optimize.bisect(self.funkcja, self.poczatek, self.koniec)))
+        print(optimize.minimize_scalar(self.funkcja, method='bounded', bounds=(self.poczatek, self.koniec)))
         return midpoint
 
     def zlotyPodzial(self):
@@ -337,7 +341,9 @@ class Main(QWidget):
                     c = (b - a) * (-phi) + b
                     yC = self.funkcja(c)
         else:
-            while abs(b - a) <= 2 * epsilon:
+
+            while float(abs(b - a)) >= (2 * epsilon):
+
                 print("Przedział ( " + str(a) + " ; " + str(b) + " )")
                 przedzialy.append(a)
                 przedzialy.append(b)
@@ -357,9 +363,11 @@ class Main(QWidget):
 
         X = list(range(self.poczatek, self.koniec))
         Y = []
+
         for i in X:
             Y.append(self.funkcja(i))
         plt.plot(X, Y)
+        plt.plot([self.poczatek, self.koniec], [0, 0], label="Unimodalnosc")
         plt.plot(x_opt, self.funkcja(x_opt), 'ro')
         plt.xlim([self.poczatek, self.koniec])
         plt.show()
@@ -374,7 +382,8 @@ class Main(QWidget):
         plt.show()
 
         print("Zaimplementowana: " + str(x_opt))
-        print("Wbudowana: " + str(optimize.golden(self.funkcja, brack=(self.poczatek, self.koniec))))
+        # print("Wbudowana: " + str(optimize.golden(self.funkcja, brack=(self.poczatek, self.koniec))))
+        print(optimize.minimize_scalar(self.funkcja, method='golden', bounds=(self.poczatek, self.koniec)))
         return x_opt
 
     # STARSZA METODA
